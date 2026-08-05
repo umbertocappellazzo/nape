@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Listening Forward: Next Patch Embedding Prediction for Audio</title>
+<meta name="description" content="NAPE — a self-supervised framework that predicts each next patch embedding of a log-mel spectrogram with a causal Transformer.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pink:#F72585;
+    --blue:#3A86FF;
+    --ink:#1c1c1e;
+    --contour:#333333;
+    --muted:#6b6b72;
+    --panel:#F6F8FB;
+    --line:#e7e9ef;
+    --bg:#ffffff;
+    --maxw:760px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    font-family:'Inter',system-ui,-apple-system,sans-serif;
+    color:var(--ink);
+    background:var(--bg);
+    line-height:1.7;
+    font-size:17px;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--blue);text-decoration:none;}
+  a:hover{text-decoration:underline;}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 22px;}
+
+  /* eyebrow / mono labels */
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--pink);
+    margin:0 0 10px;
+  }
+
+  /* hero */
+  header.hero{
+    background:#FBE4EE;
+    color:var(--ink);
+    padding:54px 0 46px;
+    border-bottom:1px solid #f3ccdd;
+  }
+  header.hero .venue{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    letter-spacing:0.08em;
+    color:var(--pink);
+    margin:0 0 18px;
+  }
+  header.hero h1{
+    font-size:34px;
+    line-height:1.2;
+    font-weight:600;
+    letter-spacing:-0.01em;
+    margin:0 0 8px;
+    color:var(--ink);
+    background:linear-gradient(90deg,var(--ink) 0%,var(--ink) 40%,var(--pink) 50%,var(--ink) 60%,var(--ink) 100%);
+    background-size:250% 100%;
+    background-position:100% 0;
+    -webkit-background-clip:text;
+    background-clip:text;
+    -webkit-text-fill-color:transparent;
+    animation:sheen 1.2s .15s ease-out both;
+  }
+  @keyframes sheen{from{background-position:100% 0;}to{background-position:0 0;}}
+  @media (prefers-reduced-motion:reduce){
+    header.hero h1{
+      animation:none;
+      background:none;
+      -webkit-text-fill-color:var(--ink);
+      color:var(--ink);
+    }
+  }
+  header.hero .tagline{
+    font-size:18px;
+    color:#8a5a70;
+    margin:0 0 26px;
+    font-weight:400;
+  }
+  .authors{font-size:16px;color:var(--ink);margin:0 0 4px;}
+  .affil{font-size:14px;color:#8a5a70;margin:0 0 26px;}
+  .btns{display:flex;flex-wrap:wrap;gap:10px;}
+  .btn{
+    display:inline-flex;align-items:center;gap:7px;
+    font-size:15px;font-weight:500;
+    padding:9px 16px;border-radius:8px;
+    background:var(--pink);color:#fff;
+    border:1px solid var(--pink);
+    transition:transform .12s ease, background .12s ease;
+  }
+  .btn:hover{text-decoration:none;transform:translateY(-1px);}
+  .btn.ghost{background:transparent;color:var(--ink);border-color:#d9c0cc;}
+  .btn.ghost:hover{background:rgba(255,255,255,.5);border-color:var(--contour);}
+  .btn svg{width:15px;height:15px;}
+
+  /* sections */
+  section{padding:44px 0;border-bottom:1px solid var(--line);}
+  section:last-of-type{border-bottom:none;}
+  h2{
+    font-size:22px;font-weight:600;letter-spacing:-0.01em;
+    margin:0 0 16px;
+  }
+  h3{font-size:17px;font-weight:600;margin:26px 0 8px;}
+  p{margin:0 0 16px;}
+  .lead{font-size:18px;}
+
+  /* figure placeholder */
+  figure{margin:22px 0;}
+  .fig-ph{
+    background:var(--panel);
+    border:1px dashed #c7ccd8;
+    border-radius:12px;
+    padding:34px 20px;
+    text-align:center;
+    color:var(--muted);
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;
+  }
+  .fig-ph .fname{color:var(--contour);display:block;margin-top:6px;font-size:12px;}
+  figure img{display:block;width:100%;height:auto;background:#fff;border:1px solid var(--line);border-radius:12px;}
+  figcaption{font-size:14px;color:var(--muted);margin-top:10px;line-height:1.6;}
+  figcaption b{color:var(--ink);font-weight:600;}
+
+  /* side-by-side figure pair */
+  .pair{display:flex;gap:16px;align-items:flex-start;margin:22px 0;}
+  .pair figure{margin:0;flex:1;min-width:0;}
+
+  /* key-components cards */
+  .cards{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:12px;margin:22px 0;
+  }
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:16px;
+  }
+  .card .n{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;color:var(--blue);margin:0 0 6px;
+  }
+  .card h4{margin:0 0 6px;font-size:15px;font-weight:600;}
+  .card p{margin:0;font-size:14px;line-height:1.55;color:var(--muted);}
+
+  /* scanning legend */
+  .scan{display:flex;flex-wrap:wrap;gap:18px;margin:14px 0 4px;font-size:14px;}
+  .scan span{display:inline-flex;align-items:center;gap:7px;}
+  .swatch{width:13px;height:13px;border-radius:3px;display:inline-block;border:1px solid var(--contour);}
+
+  /* results table */
+  .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:20px 0;}
+  table{border-collapse:collapse;width:100%;font-size:14px;min-width:520px;}
+  th,td{padding:9px 12px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap;}
+  th:first-child,td:first-child{text-align:left;}
+  thead th{
+    font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;
+    color:var(--muted);border-bottom:1.5px solid var(--contour);
+  }
+  tr.nape_r td{background:rgba(247,37,133,.06);font-weight:500;}
+  tr.nape_r td:first-child{color:var(--pink);}
+  tr.nape_d td{background:rgba(44, 63, 242,.06);font-weight:500;}
+  tr.nape_d td:first-child{color:var(--blue);}
+  .tnote{font-size:13px;color:var(--muted);margin-top:-6px;}
+  
+  
+
+  /* highlight stats */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:6px 0 4px;}
+  .stat{background:var(--panel);border-radius:12px;padding:16px;text-align:center;}
+  .stat .v{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:500;color:var(--ink);line-height:1.1;}
+  .stat .v .u{font-size:14px;color:var(--muted);}
+  .stat .k{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.4;}
+
+  /* bibtex */
+  pre{
+    background:var(--contour);color:#f2f2f5;
+    border-radius:12px;padding:18px;overflow-x:auto;
+    font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.6;
+    margin:0;
+  }
+  .copy-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+  .copy-btn{
+    font-family:'JetBrains Mono',monospace;font-size:12px;
+    background:none;border:1px solid var(--line);color:var(--muted);
+    padding:5px 11px;border-radius:7px;cursor:pointer;
+  }
+  .copy-btn:hover{border-color:var(--contour);color:var(--ink);}
+
+  footer{padding:30px 0 44px;text-align:center;color:var(--muted);font-size:13px;}
+
+  /* mobile */
+  @media (max-width:640px){
+    body{font-size:16px;}
+    header.hero{padding:40px 0 34px;}
+    header.hero h1{font-size:26px;}
+    header.hero .tagline{font-size:16px;}
+    .cards{grid-template-columns:1fr;}
+    .stats{grid-template-columns:repeat(2,1fr);}
+    .pair{flex-direction:column;}
+    section{padding:34px 0;}
+    .btn{font-size:14px;padding:8px 14px;}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="venue">arXiv preprint · 2026</p>
+    <h1>Listening Forward: Next Patch Embedding Prediction Enables Scalable Audio Learners</h1>
+    <p class="tagline">A minimalist self-supervised objective for strong, scalable audio learners.</p>
+    <p class="authors">Umberto Cappellazzo<sup>1,2</sup>, Xubo Liu<sup>3</sup>, Stavros Petridis<sup>1,2</sup>, Maja Pantic<sup>1,2</sup></p>
+    <p class="affil"><sup>1</sup> Imperial College London · <sup>2</sup> NatWest AI Research · <sup>3</sup> University of Surrey</p>
+    <div class="btns">
+      <a class="btn" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/></svg>
+        Paper
+      </a>
+      <a class="btn ghost" href="#">arXiv</a>
+      <a class="btn ghost" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+        Code
+      </a>
+      <a class="btn ghost" href="#bibtex">BibTeX</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<section id="abstract">
+  <div class="wrap">
+    <p class="eyebrow">Abstract</p>
+    <p>We introduce <b>NAPE</b> (<b>N</b>ext <b>A</b>udio <b>P</b>atch <b>E</b>mbedding prediction), a
+      self-supervised framework for audio representation learning in
+      which a causal Transformer predicts each next patch embedding of a
+      log-mel spectrogram from the preceding ones, using causal masking
+      and stop-gradient as its sole training signal. Unlike existing
+      audio SSL methods that rely on reconstruction decoders, acoustic
+      tokenizers, student-teacher setups, or auxiliary regularization
+      losses, NAPE's design is deliberately minimalist. Across six audio
+      and speech benchmarks, NAPE achieves state-of-the-art fine-tuning
+      performance on several tasks, yields strong linear-probing results,
+      and scales consistently across encoder sizes.
+      </p>
+  </div>
+</section>
+
+<section id="method">
+  <div class="wrap">
+    <p class="eyebrow">Method</p>
+    <h2>Predicting the next patch, one step at a time</h2>
+    <p>Given a log-mel spectrogram, NAPE splits it into non-overlapping patches and projects each into an embedding, producing a 2D grid. A scanning order linearizes the grid into a 1D sequence; a causal Transformer encoder processes it and a lightweight predictor head estimates the next patch embedding. Prediction quality is measured by negative cosine similarity to the target embedding under a stop-gradient, analogous to next-token prediction, but in a continuous embedding space.</p>
+
+    <figure>
+      <img src="figures/NAPE_overview.png" alt="NAPE framework overview: the spectrogram is split into patches and the model predicts each next patch embedding from the preceding ones under a causal mask">
+      <figcaption><b>Figure 1.</b> NAPE splits the spectrogram into patches and, at each step, predicts the embedding of the next patch using only the preceding ones; future positions are hidden by the causal attention mask.</figcaption>
+    </figure>
+
+    <h3>Three ingredients, no heuristics</h3>
+    <p>Three complementary mechanisms prevent NAPE from collapsing to trivial solutions, and together define its entire training regime.</p>
+    <div class="cards">
+      <div class="card">
+        <p class="n">01</p>
+        <h4>Causality</h4>
+        <p>A causal mask restricts each position to prior patches, blocking the trivial identity mapping.</p>
+      </div>
+      <div class="card">
+        <p class="n">02</p>
+        <h4>Prediction shift</h4>
+        <p>Position <i>t</i> predicts patch <i>t+1</i>, so causality can't be side-stepped by copying the current input.</p>
+      </div>
+      <div class="card">
+        <p class="n">03</p>
+        <h4>Stop-gradient</h4>
+        <p>The target is treated as constant, preventing the encoder from collapsing to a shared vector.</p>
+      </div>
+    </div>
+
+    <h3>Scanning order matters for audio</h3>
+    <p>Because causal prediction depends on which patches are "past," the order in which the 2D grid is linearized imposes a real inductive bias. We study four orders; those that advance in time, <span style="color:var(--pink);font-weight:500;">raster</span> and <span style="color:var(--blue);font-weight:500;">diagonal</span>, work best, matching how acoustic events unfold.</p>
+    <div class="scan">
+      <span><i class="swatch" style="background:var(--pink);"></i> Raster</span>
+      <span><i class="swatch" style="background:var(--blue);"></i> Diagonal</span>
+      <span><i class="swatch" style="background:#d9b3e6;"></i> Zigzag</span>
+      <span><i class="swatch" style="background:#8bd39a;"></i> Time-major</span>
+    </div>
+    <figure>
+      <img src="figures/Scan_orders.png" alt="Four scanning orders that linearize the patch grid into a causal sequence: raster, diagonal, zigzag, and time-major">
+      <figcaption><b>Figure 2.</b> Four ways to linearize the patch grid into a causal sequence. Numbers indicate each patch's position in the sequence.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section id="results">
+  <div class="wrap">
+    <p class="eyebrow">Results</p>
+    <h2>Competitive with far more elaborate recipes</h2>
+    <p>NAPE-B with diagonal scan matches or exceeds every self-supervised competitor of comparable size. Scaled up, NAPE-L ties the strongest baseline on AudioSet-2M and transfers especially well to speech.</p>
+
+    <div class="stats">
+      <div class="stat"><div class="v">50.2</div><div class="k">AS-2M<br> mAP</div></div>
+      <div class="stat"><div class="v">40.5</div><div class="k">AS-20K<br> mAP</div></div>
+      <div class="stat"><div class="v">97.9/98.8<span class="u">%</span></div><div class="k">KS1/KS2<br>accuracy</div></div>
+      <div class="stat"><div class="v">68.0<span class="u">%</span></div><div class="k">IEMOCAP<br>+3.5 vs best</div></div>
+    </div>
+
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>Model</th><th>#Par.</th><th>AS-2M</th><th>AS-20K</th><th>ESC-50</th><th>KS1</th><th>KS2</th><th>ER</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>SS-AST (Huang et al., 2022)</td><td>89M</td><td>-</td><td>31.0</td><td>88.8</td><td>96.0</td><td>98.0</td><td>59.6</td></tr>
+          <tr><td>MAE-AST (Baade et al., 2022)</td><td>86M</td><td>-</td><td>30.6</td><td>90.0</td><td>95.8</td><td>97.9</td><td>59.8</td></tr>
+          <tr><td>CAV-MAE (Gong et al., 2023)</td><td>86M</td><td>44.9</td><td>34.2</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
+          <tr><td>Audio-MAE (Huang et al., 2022)</td><td>86M</td><td>47.3</td><td>37.1</td><td>94.1</td><td>96.9</td><td>98.3</td><td>-</td></tr>
+          <tr><td>Audio-MAE L (Huang et al., 2022)</td><td>304M</td><td>47.4</td><td>37.7</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
+          <tr><td>data2vec (Baevski et al., 2022)</td><td>94M</td><td>-</td><td>34.5</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
+          <tr><td>MaskSpec (Chong et al., 2023)</td><td>86M</td><td>47.1</td><td>32.3</td><td>89.6</td><td>-</td><td>97.7</td><td>-</td></tr>
+          <tr><td>BEATs (Chen et al., 2022)</td><td>90M</td><td>48.0</td><td>38.3</td><td>95.6</td><td>97.7</td><td>98.3</td><td>64.5</td></tr>
+          <tr><td>A-JEPA (Fei et al., 2023)</td><td>86M</td><td>48.6</td><td>38.4</td><td>96.3</td><td>97.7</td><td>98.5</td><td>-</td></tr>
+          <tr><td>ASiT (Ahmed et al., 2024)</td><td>86M</td><td>48.0</td><td>38.6</td><td>95.3</td><td>98.2</td><td>98.9</td><td>—</td></tr>
+          <tr><td>EAT (Chen et al., 2024)</td><td>88M</td><td>48.6</td><td>40.2</td><td>95.9</td><td>—</td><td>98.3</td><td>—</td></tr>
+          <tr><td>SSLAM (Alex et al., 2025)</td><td>88M</td><td>50.2</td><td>40.9</td><td>96.2</td><td>98.8</td><td>98.1</td><td>—</td></tr>
+          <tr><td>SPEAR (Yang et al., 2026)</td><td>327M</td><td>50.2</td><td>40.9</td><td>96.2</td><td>98.8</td><td>98.1</td><td>—</td></tr>
+          <tr class="nape_d"><td>NAPE-B diagonal</td><td>85M</td><td>49.7</td><td>39.2</td><td>94.8</td><td>97.9</td><td>98.6</td><td>67.1</td></tr>
+          <tr class="nape_r"><td>NAPE-L raster</td><td>303M</td><td>50.2</td><td>40.5</td><td>96.0</td><td>97.9</td><td>98.8</td><td>68.0</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="tnote">Self-supervised methods pre-trained on AudioSet. Full comparison table in the paper.</p>
+
+    <h3>Favorable scaling</h3>
+    <p>NAPE improves on every benchmark as the encoder grows from Small (~19M) to Base (~85M) to Large (~303M) parameters, supporting next-patch-embedding prediction as a scalable objective.</p>
+    <figure>
+      <img src="figures/Scaling.png" alt="Downstream performance across three encoder scales (Small, Base, Large) under raster and diagonal scan orders">
+      <figcaption><b>Figure 3.</b> Downstream performance across three encoder scales under raster and diagonal scan orders.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section id="probing">
+  <div class="wrap">
+    <p class="eyebrow">Linear probing</p>
+    <h2>Discriminative features, mid-network</h2>
+    <p>Even under a strict feature-freeze, NAPE's representations stay discriminative. The best probing layer sits around the middle of the encoder, the top layers specialize for the prediction objective, while mid-layers retain more general, classification-relevant information. Probing performance also scales positively with model size.</p>
+    <div class="pair">
+      <figure>
+        <img src="figures/Linear_probing_plot.png" alt="Layer-wise linear probing: AS-20K mAP versus relative encoder depth for each model scale">
+        <figcaption><b>Figure 4.</b> AS-20K mAP as a function of relative encoder depth, for each model scale.</figcaption>
+      </figure>
+      <figure>
+        <img src="figures/Linear_probing_table.png" alt="Linear probing results across scales and tasks">
+        <figcaption><b>Table 7.</b> Linear probing results across scales and tasks.</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section id="qualitative">
+  <div class="wrap">
+    <p class="eyebrow">Qualitative analysis</p>
+    <h2>Structure without supervision</h2>
+    <p>NAPE predicts next-patch embeddings with high cosine similarity on unseen audio. Its attention reasons jointly about the current spectral context and the frequency-consistent temporal history, and its predicted embeddings group acoustically-similar patches together, <b><i>all without any explicit labels</i></b>.</p>
+    <figure>
+      <img src="figures/Qualitative.png" alt="Prediction quality and attention / embedding-similarity maps for a pretrained NAPE-L model">
+      <figcaption><b>Figure 5.</b> Prediction quality (top) and attention/embedding-similarity maps (bottom) for a pretrained NAPE-L.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section id="bibtex">
+  <div class="wrap">
+    <p class="eyebrow">Citation</p>
+    <div class="copy-row">
+      <h2 style="margin:0;">BibTeX</h2>
+      <button class="copy-btn" onclick="copyBib()">Copy</button>
+    </div>
+    <pre id="bib">@article{nape2026,
+  title   = {Listening Forward: Next Patch Embedding Prediction Enables Scalable Audio Learners},
+  author  = {Umberto Cappellazzo, Xubo Liu, Stavros Petridis, Maja Pantic},
+  journal = {arXiv preprint arXiv:XXXX.XXXXX},
+  year    = {2026}
+}</pre>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    Built for the NAPE project page · replace links and names before release.
+  </div>
+</footer>
+
+<script>
+  function copyBib(){
+    const t=document.getElementById('bib').innerText;
+    navigator.clipboard.writeText(t).then(()=>{
+      const b=document.querySelector('.copy-btn');
+      const o=b.innerText;b.innerText='Copied';
+      setTimeout(()=>b.innerText=o,1400);
+    });
+  }
+</script>
+</body>
+</html>
