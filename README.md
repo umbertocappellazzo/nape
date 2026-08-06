@@ -203,7 +203,7 @@ heatmaps, single-query attention maps, and embedding-similarity maps).
 
 ## Acknowledgments
 
-- Our Code relies on [Transformers](https://github.com/huggingface/transformers) and [NEPA](https://github.com/SihanXU/nepa/).
+- Our Code relies on [Transformers](https://github.com/huggingface/transformers), [NEPA](https://github.com/SihanXU/nepa/), [AST](https://github.com/YuanGongND/ast), [EAT](https://github.com/cwx-worst-one/EAT).
 - Built with [PyTorch](https://pytorch.org/)
 
 ---
