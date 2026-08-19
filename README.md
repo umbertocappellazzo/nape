@@ -17,7 +17,7 @@ Umberto Cappellazzo<sup>1,2</sup>, Xubo Liu<sup>3</sup>, Stavros Petridis<sup>1,
 
 ## 📰 News
 
-- **[YYYY-MM-DD]** NAPE paper released on arXiv, along with the full code and pre-trained checkpoints.
+- **[08-2026]** NAPE paper released on arXiv, along with the full code and pre-trained checkpoints.
 
 ---
 
