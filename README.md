@@ -2,9 +2,9 @@
 
 # Listening Forward: Next Patch Embedding Prediction Enables Scalable Audio Learners
 
-Umberto Cappellazzo<sup>1,2</sup>, Xubo Liu<sup>3</sup>, Stavros Petridis<sup>1,2</sup>, Maja Pantic<sup>1,2</sup>
+Umberto Cappellazzo<sup>1</sup>, Xubo Liu<sup>2</sup>, Stavros Petridis<sup>1</sup>, Maja Pantic<sup>1</sup>
 
-<sup>1</sup> Imperial College London &nbsp;&nbsp; <sup>2</sup> NatWest AI Research &nbsp;&nbsp; <sup>3</sup> University of Surrey
+<sup>1</sup> Imperial College London &nbsp;&nbsp; <sup>2</sup> University of Surrey
 
 [![Paper](https://img.shields.io/badge/arXiv-Paper-b31b1b?logo=arxiv&logoColor=b31b1b)](https://arxiv.org/abs/XXXX.XXXXX)
 [![Hugging Model Card](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Model-blue)](https://huggingface.co/collections/??)
