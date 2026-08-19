@@ -72,7 +72,7 @@ NAPE is pre-trained on **AudioSet** and fine-tuned/linearly probed on six downst
 
 ### Downloading the datasets
 
-We provide download scripts for the smaller benchmarks:
+We provide download scripts for the smaller benchmarks (navigate to `download_datasets` folder):
 
 - **ESC-50**: `python extract_esc50.py`
 - **Speech Commands V1/V2**: `python extract_gsc.py`
