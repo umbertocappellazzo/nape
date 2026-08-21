@@ -216,7 +216,7 @@ If you find NAPE useful in your research, please cite our paper:
 @article{cappellazzo2026listening,
     title={Listening Forward: Next Patch Embedding Prediction Enables Scalable Audio Learners},
     author={Cappellazzo, Umberto and Liu, Xubo and Petridis, Stavros and Pantic, Maja},
-    journal={arXiv preprint arXiv:XXXX.XXXXX},
+    journal={arXiv preprint arXiv:2608.19863},
     year={2026},
 }
 ```
