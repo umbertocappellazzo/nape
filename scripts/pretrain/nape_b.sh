@@ -43,7 +43,7 @@ torchrun \
     --node_rank=$RANK \
     --master_addr=$MASTER_ADDR \
     --master_port=$MASTER_PORT \
-    --nproc_per_node $NGPU run_audio_nape.py \
+    --nproc_per_node $NGPU run_nape.py \
     \
     --ddp_backend nccl \
     --ddp_find_unused_parameters False \
